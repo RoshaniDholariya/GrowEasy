@@ -1,20 +1,23 @@
 const fs = require("fs");
-const Papa = require("papaparse");
+const csv = require("csv-parser");
 
 const parseCSV = (filePath) => {
   return new Promise((resolve, reject) => {
-    try {
-      const csvFile = fs.readFileSync(filePath, "utf8");
 
-      const result = Papa.parse(csvFile, {
-        header: true,
-        skipEmptyLines: true,
+    const records = [];
+
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => {
+        records.push(data);
+      })
+      .on("end", () => {
+        resolve(records);
+      })
+      .on("error", (error) => {
+        reject(error);
       });
 
-      resolve(result.data);
-    } catch (error) {
-      reject(error);
-    }
   });
 };
 
